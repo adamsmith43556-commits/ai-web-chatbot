@@ -1,11 +1,9 @@
 from flask import Flask, request, jsonify
-import openai
+from openai import OpenAI
 import os
 
 app = Flask(__name__)
-
-# Set your OpenAI API key here or via environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI()
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -16,15 +14,13 @@ def chat():
         return jsonify({'error': 'No message provided'}), 400
 
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=message,
-            max_tokens=150,
-            n=1,
-            stop=None,
-            temperature=0.7,
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": message}
+            ]
         )
-        answer = response.choices[0].text.strip()
+        answer = response.choices[0].message.content
         return jsonify({'reply': answer})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
